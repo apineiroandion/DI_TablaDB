@@ -2,6 +2,7 @@ import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QTableView, QLineEdit, QComboBox, \
     QCheckBox, QHBoxLayout, QPushButton, QGridLayout, QLabel
 
+from DatabaseConnection import DatabaseConnection
 from ModeloTabla import ModeloTabla
 
 
@@ -9,9 +10,12 @@ class EjemploQTableView(QMainWindow):
     estado_operacion = 0;
     def __init__(self):
         super().__init__()
+        self.conexion = DatabaseConnection()
+        self.conexion.crear_tabla("personas", "nome TEXT, dni TEXT, genero TEXT, fallecido BOOLEAN")
         self.setWindowTitle("Ejemplo QTableView")
 
         self.datos = [['Nome','DNI','Genero','Fallecido']]
+        self.datos.extend(self.conexion.leer("personas"))
 
         caja_h = QHBoxLayout()
         self.tvw_tabla = QTableView()
@@ -88,11 +92,13 @@ class EjemploQTableView(QMainWindow):
         print("Editar")
         self.estado_operacion = 2;
         self.estado_editar()
+        #self.setDatosFromID()
 
     def eliminar(self):
         print("Eliminar")
         self.estado_operacion = 3;
         self.estado_eliminar()
+        #self.setDatosFromID()
 
     def aceptar(self):
         print("Aceptar")
@@ -102,7 +108,7 @@ class EjemploQTableView(QMainWindow):
             self.edit_action()
         elif self.estado_operacion == 3:
             self.delete_action()
-        self.modelo.layoutChanged.emit()
+        self.repaint()
         self.estado_visualizar()
         self.estado_operacion = 0;
 
@@ -174,12 +180,30 @@ class EjemploQTableView(QMainWindow):
 
     def add_action(self):
         self.modelo.add_row(self.aux_add_edit())
+        self.conexion.insertar("personas", self.txtNome.text(), self.txtDni.text(), self.cmbGenero.currentText(), self.chkFallecido.isChecked())
+        print("Add to database")
 
     def edit_action(self):
         self.modelo.update_row(self.tvw_tabla.currentIndex().row(), self.aux_add_edit())
+        self.conexion.update_item("personas", self.txtNome.text(), self.txtDni.text(), self.cmbGenero.currentText(), self.chkFallecido.isChecked())
+        print("Edit to database")
 
     def delete_action(self):
+        self.conexion.delete_item("personas", self.datos[self.tvw_tabla.currentIndex().row()][1])
         self.modelo.delete_row(self.tvw_tabla.currentIndex().row())
+        print("Delete to database")
+
+    def setDatosFromID(self):
+        self.modelo.delete_row(self.tvw_tabla.currentIndex().row())
+        self.txtNome.setText(self.datos[self.tvw_tabla.currentIndex().row()][0])
+        self.txtDni.setText(self.datos[self.tvw_tabla.currentIndex().row()][1])
+        self.cmbGenero.setCurrentText(self.datos[self.tvw_tabla.currentIndex().row()][2])
+        self.chkFallecido.setChecked(self.datos[self.tvw_tabla.currentIndex().row()][3])
+
+    def repaint(self):
+        self.modelo.layoutChanged.emit()
+        self.tvw_tabla.repaint()
+        self.tvw_tabla.update()
 
 
 

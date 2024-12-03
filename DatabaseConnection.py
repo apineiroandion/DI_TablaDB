@@ -13,22 +13,27 @@ class DatabaseConnection:
         self.cursor.execute(f"CREATE TABLE IF NOT EXISTS {nombre_tabla} ({campos})")
         self.conexion.commit()
 
-    def insertar(self, nombre_tabla, nome, dni, genero, fallecido):
-        #Metodo que inserta datos en una tabla
-        self.cursor.execute(f"INSERT INTO {nombre_tabla} VALUES ({nome}, {dni}, {genero}, {fallecido})")
+    def insertar(self, nombre_tabla, nombre, dni, genero, fallecido):
+        self.cursor.execute(
+            f"INSERT INTO {nombre_tabla} VALUES (?, ?, ?, ?)",
+            (nombre, dni, genero, fallecido)
+        )
         self.conexion.commit()
 
     def leer(self, nombre_tabla):
-        #Metodo que lee todos los datos de una tabla
         self.cursor.execute(f"SELECT * FROM {nombre_tabla}")
         return self.cursor.fetchall()
 
     def delete_item(self, nombre_tabla, dni):
-        #Metodo que elimina un item de una tabla
-        self.cursor.execute(f"DELETE FROM {nombre_tabla} WHERE dni = {dni}")
+        self.cursor.execute(
+            f"DELETE FROM {nombre_tabla} WHERE dni = ?",
+            (dni,)
+        )
         self.conexion.commit()
 
-    def update_item(self, nombre_tabla, nome, dni, genero, fallecido):
-        #Metodo que actualiza un item de una tabla
-        self.cursor.execute(f"UPDATE {nombre_tabla} SET nome = {nome}, genero = {genero}, fallecido = {fallecido} WHERE dni = {dni}")
+    def update_item(self, nombre_tabla, nombre, dni, genero, fallecido):
+        self.cursor.execute(
+            f"UPDATE {nombre_tabla} SET nome = ?, genero = ?, fallecido = ? WHERE dni = ?",
+            (nombre, genero, fallecido, dni)
+        )
         self.conexion.commit()
